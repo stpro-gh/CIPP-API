@@ -33,14 +33,26 @@ jobs:
       - name: Create deployment package
         shell: pwsh
         run: |
-          $ErrorActionPreference = "Stop"
           $staging = "staging"
-          if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
+
+          if (Test-Path $staging) {
+            Remove-Item $staging -Recurse -Force
+          }
+
           New-Item -ItemType Directory -Path $staging | Out-Null
 
-          robocopy "." "$staging" /E /XD ".git" ".github" ".vscode" /XF "*.md" | Out-Null
+          robocopy "." "$staging" /E /XD ".git" ".github" ".vscode" /XF "*.md"
+          $rc = $LASTEXITCODE
 
-          if (Test-Path "package.zip") { Remove-Item "package.zip" -Force }
+          # Robocopy returns 0-7 for success, 8+ for failure
+          if ($rc -ge 8) {
+            throw "Robocopy failed with exit code $rc"
+          }
+
+          if (Test-Path "package.zip") {
+            Remove-Item "package.zip" -Force
+          }
+
           Compress-Archive -Path "$staging\*" -DestinationPath "package.zip" -Force
 
 
@@ -51,5 +63,6 @@ jobs:
             --resource-group rg-cipp-prod \
             --name cippcs7q2 \
             --src package.zip
+
 
 
