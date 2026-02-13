@@ -49,11 +49,14 @@ jobs:
             throw "Robocopy failed with exit code $rc"
           }
 
+          cmd /c exit 0
+
           if (Test-Path "package.zip") {
             Remove-Item "package.zip" -Force
           }
 
           Compress-Archive -Path "$staging\*" -DestinationPath "package.zip" -Force
+
 
 
       - name: Deploy via Azure CLI zip deploy
@@ -63,6 +66,7 @@ jobs:
             --resource-group rg-cipp-prod \
             --name cippcs7q2 \
             --src package.zip
+
 
 
 
