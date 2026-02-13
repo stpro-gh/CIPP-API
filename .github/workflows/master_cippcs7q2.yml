@@ -30,11 +30,17 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B8BDC40DC501436ABDF712E51361419E }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9F5B7BFF63E242338ED19C870334261C }}
 
-      - name: 'Run Azure Functions Action'
-        uses: Azure/functions-action@v1
-        id: fa
-        with:
-          app-name: 'cippcs7q2'
-          slot-name: 'Production'
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+
+- name: Create deployment package
+  shell: pwsh
+  run: |
+    Compress-Archive -Path * -DestinationPath package.zip -Force -CompressionLevel Optimal -Exclude ".git*", ".github*"
+
+- name: Deploy via Azure CLI zip deploy
+  run: |
+    az functionapp deployment source config-zip \
+      --resource-group rg-cipp-prod \
+      --name cippcs7q2 \
+      --src package.zip
+
           
